@@ -1,6 +1,7 @@
 require 'clockwork'
 require 'twitter'
 require 'dotenv'
+require 'awesome_print'
 
 include Clockwork
 Dotenv.load
@@ -18,6 +19,8 @@ if check?
     puts "#{tweet}\n is too long by #{diff} characters!"
   end
 else
+  TIME = 10.seconds
+
   client = Twitter::REST::Client.new do |config|
     config.consumer_key        = ENV['TWITTER_CONSUMER_KEY']
     config.consumer_secret     = ENV['TWITTER_CONSUMER_SECRET']
@@ -25,14 +28,29 @@ else
     config.access_token_secret = ENV['TWITTER_ACCESS_SECRET']
   end
 
-  tweets = tweets_file.lines
+  tweets = tweets_file.lines.map(&:chomp).compact
+  last_status_id = nil
 
+  puts "#{tweets.length} lines? No problem."
+  i = 1
   handler do |_|
-    unless tweets.empty?
+    if !tweets.empty?
       tweet = tweets.shift
-      client.update(tweet)
+      if tweet != ''
+        puts "Tweeting line #{i}"
+        response = if last_status_id.nil?
+                     client.update(tweet)
+                   else
+                     client.update(tweet, in_reply_to_status_id: last_status_id)
+                   end
+        puts "Tweeted line #{i}"
+        last_status_id = response.id
+      end
+      i += 1
+    else
+      puts '*** End this script--no more tweets ***'
     end
   end
 
-  every(3.minutes, 'tweet')
+  every(TIME, 'tweet')
 end
