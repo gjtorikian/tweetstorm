@@ -3,9 +3,6 @@ require 'twitter'
 require 'dotenv'
 require 'awesome_print'
 
-include Clockwork
-Dotenv.load
-
 tweets_file = File.read('tweets.txt')
 
 def check?
@@ -18,7 +15,11 @@ if check?
     diff = tweet.length - 140
     puts "#{tweet}\n is too long by #{diff} characters!"
   end
+  exit 0 # Stops Clockwork from running
 else
+  include Clockwork
+  Dotenv.load
+
   TIME = 10.seconds
 
   client = Twitter::REST::Client.new do |config|
