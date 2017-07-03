@@ -37,16 +37,18 @@ else
   handler do |_|
     if !tweets.empty?
       tweet = tweets.shift
-      if tweet != ''
-        puts "Tweeting line #{i}"
-        response = if last_status_id.nil?
-                     client.update(tweet)
-                   else
-                     client.update(tweet, in_reply_to_status_id: last_status_id)
-                   end
-        puts "Tweeted line #{i}"
-        last_status_id = response.id
+      if tweet == ''
+        tweet = tweets.shift
+        i += 1
       end
+      puts "Tweeting line #{i}"
+      response = if last_status_id.nil?
+                   client.update(tweet)
+                 else
+                   client.update(tweet, in_reply_to_status_id: last_status_id)
+                 end
+      puts "Tweeted line #{i}"
+      last_status_id = response.id
       i += 1
     else
       puts '*** End this script--no more tweets ***'
